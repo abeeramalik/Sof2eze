@@ -1,0 +1,30 @@
+[
+  {
+    "id": "blog-why-we-split-cms-backend",
+    "title": "Why we keep our CMS and application backend completely separate",
+    "body": "A lot of teams reach for a single monolithic backend because it feels simpler at first. We've found the opposite holds true past a certain size: separating content from application logic means the people writing blog posts never wait on a deploy, and the people writing application code never have to think about rich text rendering. This post walks through how we structure that split in practice, including where the API boundary sits and what we deliberately keep out of the CMS.",
+    "publishedAt": "2026-05-12T09:00:00.000Z",
+    "status": "Published"
+  },
+  {
+    "id": "blog-picking-a-stack-2026",
+    "title": "How we pick a stack for a new client project in 2026",
+    "body": "Every project pitch eventually gets the question: why this stack and not another one? Our answer has less to do with what's trendy and more to do with three questions: who's going to maintain this in two years, how many people need to work in this codebase at once, and what happens when something breaks at 2am. This post covers how those three questions actually shape real decisions.",
+    "publishedAt": "2026-04-03T09:00:00.000Z",
+    "status": "Published"
+  },
+  {
+    "id": "blog-resume-storage-lessons",
+    "title": "What we learned building a stateless job application pipeline",
+    "body": "Storing uploaded files on the same server that runs your application code feels convenient until you need to scale past one server. This post covers why we route every file upload straight to object storage, and the specific bug this decision prevented for us.",
+    "publishedAt": "2026-03-18T09:00:00.000Z",
+    "status": "Published"
+  },
+  {
+    "id": "blog-draft-upcoming-hiring",
+    "title": "Draft: our hiring plans for next quarter",
+    "body": "Internal draft. Not ready for publication yet.",
+    "publishedAt": null,
+    "status": "Draft"
+  }
+]

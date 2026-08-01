@@ -1,0 +1,37 @@
+ [
+  {
+    "id": "svc-web-platforms",
+    "title": "Web Platforms",
+    "description": "Custom web applications built for speed and built to last. From customer-facing products to internal tools, designed around how your team actually works.",
+    "icon": "layout-grid",
+    "status": "Published"
+  },
+  {
+    "id": "svc-mobile-apps",
+    "title": "Mobile Apps",
+    "description": "Native-feeling iOS and Android apps from a single codebase, so your product ships on both platforms without doubling your engineering cost.",
+    "icon": "smartphone",
+    "status": "Published"
+  },
+  {
+    "id": "svc-cloud-infra",
+    "title": "Cloud & Infrastructure",
+    "description": "Deployment pipelines, monitoring, and infrastructure that scale with you. Set up once, understood by your whole team, not just the person who built it.",
+    "icon": "cloud",
+    "status": "Published"
+  },
+  {
+    "id": "svc-product-design",
+    "title": "Product Design",
+    "description": "Interfaces designed around what your users are actually trying to do, backed by research, not just aesthetics.",
+    "icon": "pen-tool",
+    "status": "Published"
+  },
+  {
+    "id": "svc-ai-integration",
+    "title": "AI Integration",
+    "description": "Practical applications of AI in your product. Recommendation systems, intelligent search, and automation that removes real friction.",
+    "icon": "sparkles",
+    "status": "Draft"
+  }
+]
