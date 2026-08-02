@@ -85,3 +85,4 @@ See `backend/.env.example` for the full list with comments. The two you must cha
 ## A note on scope
 
 This implements FR10–FR25 and the NFRs that are testable at this scale (validation, rate limiting, RBAC, auth token handling, etc.). It does not implement a real Strapi instance (that's explicitly the other team member's part of the project per the SRS) or a production database/hosting setup — both are swap-in points documented above, not gaps in the logic.
+<!-- test change -->
