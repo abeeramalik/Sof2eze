@@ -1,42 +1,41 @@
 # Sof2eze
 
-A software company portal built as a CMS-driven web application: a React/Tailwind frontend, a custom Node.js/Express backend, and a headless-CMS-shaped content layer — kept as three independently deployable pieces, matching the architecture in `Sof2eze_SRS_1_2.docx`.
-
-This project runs completely locally with **zero external accounts required** — no real Strapi, no real cloud storage, no real email provider. Every one of those is behind a small adapter so you can swap in the real thing later without touching route logic. See "Going to production" below for exactly what to swap.
+A software company portal built as a CMS-driven web application: a React/Tailwind frontend, a custom Node.js/Express backend, and a Strapi headless CMS — kept as three independently deployable pieces, matching the architecture in `Sof2eze_SRS_1_2.docx`.
 
 ## What's actually in here
 
 ```
 sof2eze/
 ├── backend/     Custom Express API — auth, forms, applications, admin dashboard
-├── mock-cms/    Stand-in for Strapi (same API shape) — swap out once your teammate's CMS is ready
+├── cms/         Strapi headless CMS — Service, TeamMember, BlogPost, JobListing,
+│                Portfolio, Testimonial, SiteContent
 └── frontend/    React + Tailwind, talks to both of the above over HTTP only
 ```
 
-Why a `mock-cms` folder exists: this project's whole architecture is built around *not* letting the frontend touch CMS data directly except through an API. Building the frontend against a real Strapi instance wasn't available yet, so `mock-cms` serves the exact same endpoint shapes Strapi would (`/api/services`, `/api/blog`, `/api/jobs`, etc.), including the Draft/Published/Unpublished filtering rule from the SRS. When the real CMS is ready, point `VITE_CMS_API_URL` at it and delete this folder — no frontend code changes needed.
+The frontend never writes to the CMS directly — it only ever reads from Strapi's public API and sends every user action (forms, applications, auth) to the custom backend. This split is what lets the two of us build in parallel: CMS content modeling on one side, application logic on the other, without either blocking the other.
 
 ## Quick start
 
 You'll need Node.js 18+ installed. Three terminals:
 
 ```bash
-# Terminal 1 — mock CMS (stand-in for Strapi)
-cd mock-cms
+# Terminal 1 — CMS (Strapi)
+cd cms
 npm install
-npm start                    # http://localhost:4001
+npm run develop              # http://localhost:1337 — first run prompts you to create an admin account
 
 # Terminal 2 — backend
 cd backend
 npm install
 cp .env.example .env
-# Edit .env: set JWT_ACCESS_SECRET, JWT_REFRESH_SECRET (openssl rand -hex 32),
-# and SEED_ADMIN_PASSWORD to something real.
+# Edit .env — see "Environment variables" below for what's required
 npm run seed                 # creates your first Admin login
 npm start                    # http://localhost:4000
 
 # Terminal 3 — frontend
 cd frontend
 npm install
+cp .env.example .env         # then set VITE_CMS_API_URL and VITE_BACKEND_API_URL
 npm run dev                  # http://localhost:5173
 ```
 
@@ -44,9 +43,9 @@ Open `http://localhost:5173`. Log in at `/login` with the email/password you set
 
 ## What's implemented
 
-Every FR/NFR from the SRS that falls on the "your side" of the architecture (frontend + custom backend — the CMS-owned content types are the other team member's responsibility):
+Every FR/NFR from the SRS that falls on the "your side" of the architecture (frontend + custom backend — CMS content modeling lives in `cms/`):
 
-- **Public pages**: Home, About, Services, Team, Blog (list + detail), Careers (list + detail), all CMS-driven
+- **Public pages**: Home, About, Services, Team, Blog (list + detail), Careers (list + detail), Portfolio, Testimonials — all CMS-driven
 - **Forms**: Contact (FR10), newsletter subscribe/unsubscribe (FR11), job application with resume upload (FR12)
 - **Search**: site-wide search across blog posts and services (FR15) — implemented as the backend querying the CMS server-side, matching the system context diagram
 - **Auth**: JWT login/logout/session-refresh (UC-5), access token held in memory only on the frontend, refresh token in an httpOnly cookie (FR22)
@@ -65,24 +64,36 @@ Every FR/NFR from the SRS that falls on the "your side" of the architecture (fro
 - Every admin status change is logged with actor + timestamp (`auditLogs`)
 - Centralized error handler that never leaks stack traces to the client
 
-## Going to production
+## Backing services
 
-Three things in here are deliberately "good enough for local development, not for production," each isolated to one file so swapping them is small:
+Unlike an earlier version of this project, nothing here is a local stand-in anymore — all four pieces below are real, working integrations, each isolated to one file so swapping providers stays simple:
 
-| Concern | Dev implementation | Production swap |
+| Concern | Implementation | File |
 |---|---|---|
-| Database | `backend/src/db/store.js` — JSON file via `lowdb` | Point this file at Postgres/MySQL/Mongo. Every route already goes through the repository functions here, not raw queries, so this is the only file that changes. |
-| Resume storage | `backend/src/utils/cloudStorage.js` — local `uploads/` folder | Set `STORAGE_DRIVER=cloudinary` and add your `CLOUDINARY_URL`; wire up the two-line SDK call flagged in that file. |
-| Email | `backend/src/utils/email.js` — logs to console | Set `EMAIL_PROVIDER_API_KEY` and wire up your provider's SDK (Resend, SendGrid, Nodemailer/SMTP — any of them). |
-| CMS | `mock-cms/` | Set `VITE_CMS_API_URL` (frontend) and `CMS_API_URL` (backend) to your real Strapi URL. Delete `mock-cms/`. |
+| Database | Real MongoDB via Mongoose. Every route goes through the repository functions in this file, not raw queries. | `backend/src/db/store.js` |
+| Resume storage | Real Cloudinary (`resource_type: raw`, so PDFs/docs upload unmodified). Falls back to a local `uploads/` folder in dev if `STORAGE_DRIVER=local`. | `backend/src/utils/cloudStorage.js` |
+| Email | Real SMTP via Nodemailer. Falls back to a free Ethereal test account in dev if no SMTP credentials are set — emails are captured in a web UI instead of actually delivered. | `backend/src/utils/email.js` |
+| CMS | Real Strapi, with custom controllers reshaping every response into a flat, predictable JSON shape (`id`, not Strapi's internal `documentId`). | `cms/` |
 
-Per the SRS: frontend → Vercel, backend/CMS → Railway.
+**Note on Cloudinary:** new accounts block delivery of raw file types (PDF/ZIP) by default. If resume downloads return an error, check Cloudinary Console → Settings → Security → enable "PDF and ZIP files delivery."
+
+Per the SRS: frontend → Vercel, backend + CMS → Railway.
 
 ## Environment variables
 
-See `backend/.env.example` for the full list with comments. The two you must change before running anything for real: `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` (generate with `openssl rand -hex 32` — don't reuse the placeholder values, don't reuse the same value for both).
+**Backend** (`backend/.env.example` has the full list with comments). Required to run at all:
+- `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` — generate with `openssl rand -hex 32` (or `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` on Windows) — don't reuse the same value for both
+- `MONGODB_URI` — a MongoDB Atlas connection string (free tier is fine)
+- `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` — used once by `npm run seed`
+
+Optional (has working dev fallbacks):
+- `STORAGE_DRIVER` + `CLOUDINARY_URL` — omit to use local disk storage instead
+- `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` — omit to use Ethereal test emails instead
+
+**Frontend** (`frontend/.env.example`):
+- `VITE_CMS_API_URL` — Strapi's URL (`http://localhost:1337` in dev)
+- `VITE_BACKEND_API_URL` — the Express backend's URL (`http://localhost:4000` in dev)
 
 ## A note on scope
 
-This implements FR10–FR25 and the NFRs that are testable at this scale (validation, rate limiting, RBAC, auth token handling, etc.). It does not implement a real Strapi instance (that's explicitly the other team member's part of the project per the SRS) or a production database/hosting setup — both are swap-in points documented above, not gaps in the logic.
-<!-- test change -->
+This implements FR10–FR25 and the NFRs that are testable at this scale (validation, rate limiting, RBAC, auth token handling, etc.), plus the full CMS-side content modeling for FR1–FR9. Remaining work is deployment itself (Vercel + Railway) and finalizing which credentials (MongoDB/Cloudinary/SMTP accounts) are used for the production environment.
