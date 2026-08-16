@@ -22,6 +22,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { nanoid } from "nanoid";
+import { v2 as cloudinary } from "cloudinary";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads");
@@ -38,20 +39,46 @@ async function storeLocal(buffer, originalName) {
   return { url: `/uploads/${filename}`, storageKey: filename };
 }
 
-async function storeCloudinary() {
+// CLOUDINARY_URL, if set, is read automatically by the SDK on `.config()`
+// with no arguments — that's why there's no explicit key/secret here.
+let cloudinaryConfigured = false;
+function ensureCloudinaryConfigured() {
+  if (cloudinaryConfigured) return;
   if (!process.env.CLOUDINARY_URL) {
     throw new Error(
       "STORAGE_DRIVER=cloudinary but CLOUDINARY_URL is not set. Add it to your .env " +
         "(see .env.example) or switch STORAGE_DRIVER back to 'local' for development."
     );
   }
-  // Intentionally left as a clear extension point rather than a fake
-  // implementation: wire up the official `cloudinary` SDK's
-  // `uploader.upload_stream` here once you have real credentials, so this
-  // file stays the single place that changes when you go to production.
-  throw new Error(
-    "Cloudinary driver not wired up yet — see the comment in cloudStorage.js for the two lines to add."
-  );
+  cloudinary.config(); // reads CLOUDINARY_URL from process.env automatically
+  cloudinaryConfigured = true;
+}
+
+async function storeCloudinary(buffer, originalName) {
+  ensureCloudinaryConfigured();
+
+  const safeExt = path.extname(originalName).toLowerCase().replace(/[^a-z0-9.]/g, "");
+  const publicId = `sof2eze/resumes/${nanoid(16)}`;
+
+  const result = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw", // resumes are PDFs/docs, not images — "raw" preserves the original file as-is
+        public_id: publicId,
+        // Keeping the original extension in the delivered URL so downstream
+        // code / admins opening the link get a sane filename, since "raw"
+        // uploads don't infer a format like image uploads do.
+        format: safeExt.replace(".", "") || undefined,
+      },
+      (error, uploadResult) => {
+        if (error) reject(error);
+        else resolve(uploadResult);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+
+  return { url: result.secure_url, storageKey: result.public_id };
 }
 
 export async function storeResume(buffer, originalName) {
