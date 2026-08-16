@@ -2,7 +2,7 @@
 // the frontend NEVER writes to the CMS, and never touches its database.
 // This file only ever issues GET requests, on purpose.
 
-const CMS_BASE_URL = import.meta.env.VITE_CMS_API_URL || "http://localhost:4001";
+const CMS_BASE_URL = import.meta.env.VITE_CMS_API_URL || "http://localhost:1337";
 
 async function get(path) {
   const res = await fetch(`${CMS_BASE_URL}${path}`);
