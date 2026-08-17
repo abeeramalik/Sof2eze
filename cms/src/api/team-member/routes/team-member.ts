@@ -14,7 +14,7 @@ export default {
     },
     {
       method: 'GET',
-      path: '/teasm/:id',
+      path: '/team/:id',
       handler: 'team-member.findOne',
       config: {
         auth: false,

@@ -8,7 +8,7 @@
 // This client only ever reads (GET) — the backend never writes to the CMS,
 // same rule that applies to the frontend (guardrail #1).
 
-const CMS_BASE_URL = process.env.CMS_API_URL || "http://localhost:4001";
+const CMS_BASE_URL = process.env.CMS_API_URL || "http://localhost:1337";
 
 export async function searchCmsContent(query) {
   const [servicesRes, blogRes] = await Promise.all([
