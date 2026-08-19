@@ -95,7 +95,19 @@ router.get("/applications/:id/resume", requireRole("Admin", "Staff"), async (req
     if (!application) return res.status(404).json({ error: "Application not found." });
 
     if (!application.resumeUrl.startsWith("/uploads/")) {
-      return res.redirect(application.resumeUrl);
+      // Stream the file from Cloudinary through our own server instead of
+      // redirecting the browser there directly — a redirected fetch() call
+      // hits Cloudinary as a fresh cross-origin request and gets blocked by
+      // CORS, since our frontend sends an Authorization header via fetch()
+      // rather than a plain <a href>.
+      const cloudRes = await fetch(application.resumeUrl);
+      if (!cloudRes.ok) {
+        return res.status(cloudRes.status).json({ error: "Resume file not found." });
+      }
+      res.setHeader("Content-Type", cloudRes.headers.get("content-type") || "application/octet-stream");
+      res.setHeader("Content-Disposition", `attachment; filename="resume"`);
+      const buffer = Buffer.from(await cloudRes.arrayBuffer());
+      return res.send(buffer);
     }
 
     const filename = path.basename(application.resumeUrl);
