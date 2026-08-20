@@ -318,7 +318,7 @@ async function handleResumeDownload(e, accessToken, applicationId) {
 // after a status change so the table updates without a full page reload.
 function useDashboardData(fetcher) {
   const [tick, setTick] = useState(0);
-  const wrappedFetcher = useCallback(fetcher, [fetcher, tick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const wrappedFetcher = useCallback(() => fetcher(), [fetcher, tick]); // eslint-disable-line react-hooks/exhaustive-deps
   const result = useFetch(wrappedFetcher, [wrappedFetcher]);
   return { ...result, refetch: () => setTick((t) => t + 1) };
 }
