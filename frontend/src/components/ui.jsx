@@ -1,9 +1,10 @@
 import { Loader2, AlertTriangle } from "lucide-react";
+import Reveal from "./Reveal";
 
 export function PageHeader({ eyebrow, title, description }) {
   return (
     <div className="border-b border-ink-700 bg-ink-950">
-      <div className="mx-auto max-w-6xl px-5 py-16">
+      <Reveal direction="down" className="mx-auto max-w-6xl px-5 py-16">
         {eyebrow && (
           <div className="flex items-center gap-3">
             <p className="font-display text-sm font-semibold uppercase tracking-wide text-mustard-400">
@@ -16,7 +17,7 @@ export function PageHeader({ eyebrow, title, description }) {
           {title}
         </h1>
         {description && <p className="mt-4 max-w-xl text-lg text-fog-400">{description}</p>}
-      </div>
+      </Reveal>
     </div>
   );
 }
