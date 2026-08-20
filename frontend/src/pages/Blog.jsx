@@ -5,6 +5,7 @@ import { cms } from "../api/cmsClient";
 import { backend } from "../api/backendClient";
 import { useFetch } from "../hooks/useFetch";
 import { PageHeader, LoadingBlock, ErrorBlock } from "../components/ui";
+import Reveal from "../components/Reveal";
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
@@ -97,12 +98,12 @@ export default function Blog() {
 
           {posts && (
             <div className="space-y-6">
-              {posts.map((post) => (
-                <Link
-                  key={post.id}
-                  to={`/blog/${post.id}`}
-                  className="block rounded-xl border border-fog-200 bg-mustard-50 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg"
-                >
+              {posts.map((post, i) => (
+                <Reveal key={post.id} direction="up" delay={i * 100}>
+                  <Link
+                    to={`/blog/${post.id}`}
+                    className="block rounded-xl border border-fog-200 bg-mustard-50 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg"
+                  >
                   <p className="text-xs font-medium uppercase tracking-wide text-fog-400">
                     {formatDate(post.publishedAt)}
                   </p>
@@ -111,7 +112,8 @@ export default function Blog() {
                   <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-mustard-600">
                     Read more <ArrowRight size={14} />
                   </span>
-                </Link>
+                  </Link>
+                </Reveal>
               ))}
             </div>
           )}

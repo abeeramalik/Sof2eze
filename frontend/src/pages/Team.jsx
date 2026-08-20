@@ -1,6 +1,7 @@
 import { cms } from "../api/cmsClient";
 import { useFetch } from "../hooks/useFetch";
 import { PageHeader, LoadingBlock, ErrorBlock } from "../components/ui";
+import Reveal from "../components/Reveal";
 
 function initials(name) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -23,15 +24,15 @@ export default function Team() {
 
         {team && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((member) => (
-              <div key={member.id} className="rounded-xl border border-fog-200 bg-mustard-50 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
+            {team.map((member, i) => (
+              <Reveal key={member.id} direction="up" delay={i * 100} className="rounded-xl border border-fog-200 bg-mustard-50 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-mustard-500 font-display text-xl font-semibold text-ink-950">
                   {initials(member.name)}
                 </div>
                 <h2 className="mt-4 font-display text-lg font-semibold text-ink-900">{member.name}</h2>
                 <p className="text-sm font-medium text-mustard-600">{member.role}</p>
                 <p className="mt-3 text-sm leading-relaxed text-fog-600">{member.bio}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         )}

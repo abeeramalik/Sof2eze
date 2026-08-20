@@ -3,6 +3,7 @@ import { ArrowRight, Briefcase } from "lucide-react";
 import { cms } from "../api/cmsClient";
 import { useFetch } from "../hooks/useFetch";
 import { PageHeader, LoadingBlock, ErrorBlock, Badge } from "../components/ui";
+import Reveal from "../components/Reveal";
 
 export default function Careers() {
   const { data: jobs, error, loading } = useFetch(cms.getJobs, []);
@@ -25,12 +26,12 @@ export default function Careers() {
 
         {jobs && jobs.length > 0 && (
           <div className="space-y-4">
-            {jobs.map((job) => (
-              <Link
-                key={job.id}
-                to={`/careers/${job.id}`}
-                className="flex items-center justify-between gap-4 rounded-xl border border-fog-200 bg-mustard-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg"
-              >
+            {jobs.map((job, i) => (
+              <Reveal key={job.id} direction="up" delay={i * 100}>
+                <Link
+                  to={`/careers/${job.id}`}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-fog-200 bg-mustard-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg"
+                >
                 <div>
                   <div className="flex items-center gap-2">
                     <Briefcase size={16} className="text-mustard-600" />
@@ -40,7 +41,8 @@ export default function Careers() {
                   <p className="mt-1 line-clamp-1 text-sm text-fog-600">{job.description}</p>
                 </div>
                 <ArrowRight className="shrink-0 text-fog-400" size={18} />
-              </Link>
+                </Link>
+              </Reveal>
             ))}
           </div>
         )}

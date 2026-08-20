@@ -1,6 +1,7 @@
 import { cms } from "../api/cmsClient";
 import { useFetch } from "../hooks/useFetch";
 import { PageHeader, LoadingBlock, ErrorBlock, Badge } from "../components/ui";
+import Reveal from "../components/Reveal";
 
 export default function Portfolio() {
   const { data: projects, error, loading } = useFetch(cms.getPortfolio, []);
@@ -23,9 +24,11 @@ export default function Portfolio() {
 
         {projects && projects.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2">
-            {projects.map((project) => (
-              <div
+            {projects.map((project, i) => (
+              <Reveal
                 key={project.id}
+                direction="up"
+                delay={i * 100}
                 className="group relative overflow-hidden rounded-xl border border-fog-200 bg-mustard-50 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg"
               >
                 <span className="absolute right-0 top-0 h-10 w-10 bg-mustard-500 [clip-path:polygon(100%_0,0_0,100%_100%)]" />
@@ -41,7 +44,7 @@ export default function Portfolio() {
                   <h2 className="mt-3 font-display text-lg font-semibold text-ink-900">{project.title}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-fog-600">{project.summary}</p>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         )}

@@ -4,6 +4,7 @@ import { ArrowRight, LayoutGrid, Smartphone, Cloud, PenTool, Sparkles } from "lu
 import { cms } from "../api/cmsClient";
 import { useFetch } from "../hooks/useFetch";
 import { LoadingBlock, ErrorBlock, PrimaryButton, SecondaryButton } from "../components/ui";
+import Reveal from "../components/Reveal";
 
 const ICONS = { "layout-grid": LayoutGrid, smartphone: Smartphone, cloud: Cloud, "pen-tool": PenTool, sparkles: Sparkles };
 
@@ -32,10 +33,12 @@ export default function Home() {
             </p>
             <span className="rule-mustard" />
           </div>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight text-white sm:text-6xl">
-            {siteContent.home.heroTitle}
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-white/60">{siteContent.home.heroSubtitle}</p>
+          <Reveal direction="down">
+            <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-tight text-white sm:text-6xl">
+              {siteContent.home.heroTitle}
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-white/60">{siteContent.home.heroSubtitle}</p>
+          </Reveal>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/contact">
               <PrimaryButton className="bg-mustard-500 text-ink-950 hover:bg-mustard-400 hover:text-ink-950">
@@ -50,11 +53,11 @@ export default function Home() {
           </div>
 
           <dl className="mt-16 grid grid-cols-1 gap-8 border-t border-ink-700 pt-10 sm:grid-cols-3">
-            {siteContent.home.highlights.map((h) => (
-              <div key={h.label}>
+            {siteContent.home.highlights.map((h, i) => (
+              <Reveal key={h.label} direction="up" delay={i * 100}>
                 <dt className="text-sm text-white/40">{h.label}</dt>
                 <dd className="mt-1 font-display text-3xl font-semibold text-white">{h.value}</dd>
-              </div>
+              </Reveal>
             ))}
           </dl>
         </div>
@@ -68,16 +71,16 @@ export default function Home() {
           </Link>
         </div>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {services.slice(0, 4).map((service) => {
+          {services.slice(0, 4).map((service, i) => {
             const Icon = ICONS[service.icon] || LayoutGrid;
             return (
-              <div key={service.id} className="rounded-xl border border-fog-200 bg-mustard-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
+              <Reveal key={service.id} direction="up" delay={i * 100} className="rounded-xl border border-fog-200 bg-mustard-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mustard-500/10 text-mustard-600">
                   <Icon size={20} />
                 </div>
                 <h3 className="mt-4 font-display text-lg font-semibold text-ink-900">{service.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fog-600">{service.description}</p>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -88,13 +91,13 @@ export default function Home() {
           <div className="mx-auto max-w-6xl px-5">
             <h2 className="font-display text-3xl font-semibold text-ink-900">What clients say</h2>
             <div className="mt-8 grid gap-6 md:grid-cols-2">
-              {testimonials.map((t) => (
-                <blockquote key={t.id} className="rounded-xl border border-fog-200 bg-mustard-50 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
+              {testimonials.map((t, i) => (
+                <Reveal key={t.id} direction="up" delay={i * 100} className="rounded-xl border border-fog-200 bg-mustard-50 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-mustard-300 hover:shadow-lg">
                   <p className="text-lg leading-relaxed text-ink-900">"{t.quote}"</p>
                   <footer className="mt-4 text-sm text-fog-600">
                     <span className="font-medium text-ink-900">{t.clientName}</span>, {t.clientTitle}
                   </footer>
-                </blockquote>
+                </Reveal>
               ))}
             </div>
           </div>
