@@ -1,65 +1,41 @@
-// Transactional email via Nodemailer (FR10/FR13 confirmation + staff
-// notification emails). In development, falls back to a free Ethereal
-// test account — emails are captured in a web UI, not actually delivered.
-// When SMTP env vars are set, uses those as the real provider.
+// Transactional email via Resend's HTTPS API (not raw SMTP). Railway blocks
+// outbound SMTP ports (25/465/587/2525) on the Free/Trial/Hobby plans, so
+// Nodemailer + SMTP can never succeed there — the HTTPS API isn't affected
+// by that block. See https://docs.railway.com/networking/outbound-networking
+//
+// In development (no RESEND_API_KEY set), emails are just logged to the
+// console instead of actually sent.
 //
 // Per FR25 / UC-2's exception handling: an email failure must NEVER block
 // storing a submission or performing a status update. Every call site
 // awaits this but treats a thrown error as non-fatal — see routes/contact.js,
-// routes/applications.js, and routes/admin.js.
+// routes/applications.js, routes/newsletter.js, and routes/admin.js.
 
-import nodemailer from "nodemailer";
-
-let transporter = null;
-let etherealUrl = null;
-
-async function getTransporter() {
-  if (transporter) return transporter;
-
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-
-  if (smtpHost && smtpUser && smtpPass) {
-    transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: Number(smtpPort) || 587,
-      secure: (Number(smtpPort) || 587) === 465,
-      auth: { user: smtpUser, pass: smtpPass },
-    });
-    console.log("[email] using configured SMTP server");
-  } else {
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      auth: { user: testAccount.user, pass: testAccount.pass },
-    });
-    etherealUrl = "https://ethereal.email/login";
-    console.log("[email] using Ethereal test account — view emails at " + etherealUrl);
-  }
-
-  return transporter;
-}
+const RESEND_API_URL = "https://api.resend.com/emails";
 
 export async function sendEmail({ to, subject, body }) {
-  const transport = await getTransporter();
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.SMTP_FROM || '"Sof2eze" <onboarding@resend.dev>';
 
-  const info = await transport.sendMail({
-    from: process.env.SMTP_FROM || '"Sof2eze" <noreply@sof2eze.com>',
-    to,
-    subject,
-    text: body,
-  });
-
-  if (etherealUrl) {
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    if (previewUrl) {
-      console.log("[email] preview: " + previewUrl);
-    }
+  if (!apiKey) {
+    console.log(`[email] no RESEND_API_KEY set — logging instead of sending:\nTo: ${to}\nSubject: ${subject}\n${body}`);
+    return { delivered: false, dev: true };
   }
 
-  return { delivered: true, messageId: info.messageId };
+  const res = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ from, to, subject, text: body }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText);
+    throw new Error(`Resend API error (${res.status}): ${errText}`);
+  }
+
+  const data = await res.json();
+  return { delivered: true, messageId: data.id };
 }
